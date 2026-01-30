@@ -253,3 +253,116 @@ def test_restore_from_backup(sample_json_file):
     result = restore_from_backup(str(sample_json_file))
     assert result is not None
     assert len(result) == 2
+
+
+def test_import_from_json_with_task_list_key(tmp_path):
+    """Test importing from JSON with 'task_list' key (covers lines 33-34)."""
+    filepath = tmp_path / "tasks.json"
+    data = {
+        'task_list': [
+            {'id': 1, 'task': 'Task from task_list', 'priority': 'high', 'completed': False}
+        ]
+    }
+    with open(filepath, 'w') as f:
+        json.dump(data, f)
+    
+    result = import_from_json(str(filepath))
+    assert result is not None
+    assert len(result) == 1
+    assert result[0]['task'] == 'Task from task_list'
+
+
+def test_import_from_json_dict_without_tasks_or_task_list(tmp_path):
+    """Test importing from JSON dict without 'tasks' or 'task_list' keys (covers line 36)."""
+    filepath = tmp_path / "tasks.json"
+    data = {
+        'other_key': [
+            {'id': 1, 'task': 'Task 1'}
+        ]
+    }
+    with open(filepath, 'w') as f:
+        json.dump(data, f)
+    
+    result = import_from_json(str(filepath))
+    assert result is None
+
+
+def test_import_from_markdown_medium_priority_header(tmp_path):
+    """Test importing from Markdown with 'medium' priority header (covers lines 154-155)."""
+    filepath = tmp_path / "tasks.md"
+    with open(filepath, 'w') as f:
+        f.write("# Todo List\n\n")
+        f.write("## Medium Priority Tasks\n\n")
+        f.write("- [ ] Medium priority task\n")
+    
+    result = import_from_markdown(str(filepath))
+    assert result is not None
+    assert len(result) == 1
+    assert result[0]['priority'] == 'medium'
+
+
+def test_import_from_markdown_task_with_parentheses(tmp_path):
+    """Test importing from Markdown with parentheses in task text (covers lines 168-171)."""
+    filepath = tmp_path / "tasks.md"
+    with open(filepath, 'w') as f:
+        f.write("# Todo List\n\n")
+        f.write("- [ ] Buy groceries (due tomorrow)\n")
+        f.write("- [ ] Call mom [important]\n")
+        f.write("- [ ] Write report _draft (notes)\n")
+    
+    result = import_from_markdown(str(filepath))
+    assert result is not None
+    assert len(result) == 3
+    assert result[0]['task'] == 'Buy groceries'
+    assert result[1]['task'] == 'Call mom'
+    assert result[2]['task'] == 'Write report draft'
+
+
+def test_import_by_format_markdown(sample_markdown_file):
+    """Test import by format with 'md' format (covers line 219)."""
+    result = import_by_format(str(sample_markdown_file), format='md')
+    assert result is not None
+    assert len(result) >= 1
+
+
+def test_import_by_format_markdown_explicit(sample_markdown_file):
+    """Test import by format with 'markdown' format (covers line 219)."""
+    result = import_by_format(str(sample_markdown_file), format='markdown')
+    assert result is not None
+
+
+def test_import_by_format_text(sample_text_file):
+    """Test import by format with 'txt' format (covers line 221)."""
+    result = import_by_format(str(sample_text_file), format='txt')
+    assert result is not None
+    assert len(result) >= 1
+
+
+def test_import_by_format_text_explicit(sample_text_file):
+    """Test import by format with 'text' format (covers line 221)."""
+    result = import_by_format(str(sample_text_file), format='text')
+    assert result is not None
+
+
+def test_validate_imported_tasks_non_boolean_completed():
+    """Test validating tasks with non-boolean completed field (covers line 289)."""
+    tasks = [{'id': 1, 'task': 'Task 1', 'completed': 'yes'}]
+    valid, errors = validate_imported_tasks(tasks)
+    assert len(valid) == 1
+    assert valid[0]['completed'] is False
+
+
+def test_validate_imported_tasks_missing_id():
+    """Test validating tasks with missing id field (covers line 293)."""
+    tasks = [{'task': 'Task without id', 'priority': 'high'}]
+    valid, errors = validate_imported_tasks(tasks)
+    assert len(valid) == 1
+    assert valid[0]['id'] == 1
+
+
+def test_validate_imported_tasks_non_int_id():
+    """Test validating tasks with non-integer id field (covers line 293)."""
+    tasks = [{'id': 'string_id', 'task': 'Task with string id', 'priority': 'medium'}]
+    valid, errors = validate_imported_tasks(tasks)
+    assert len(valid) == 1
+    assert valid[0]['id'] == 1

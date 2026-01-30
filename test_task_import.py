@@ -253,3 +253,127 @@ def test_restore_from_backup(sample_json_file):
     result = restore_from_backup(str(sample_json_file))
     assert result is not None
     assert len(result) == 2
+
+
+# Additional tests to improve coverage for lines: 33, 34, 36, 154, 155, 168, 169, 170, 171, 219, 221, 289, 293
+
+def test_import_from_json_with_task_list_key(tmp_path):
+    """Test importing from JSON with 'task_list' key (covers lines 33, 34)."""
+    filepath = tmp_path / "tasks.json"
+    data = {
+        'task_list': [
+            {'id': 1, 'task': 'Task 1', 'priority': 'high', 'completed': False, 'created_at': datetime.now().isoformat()},
+            {'id': 2, 'task': 'Task 2', 'priority': 'medium', 'completed': True, 'created_at': datetime.now().isoformat()}
+        ]
+    }
+    with open(filepath, 'w') as f:
+        json.dump(data, f)
+    
+    result = import_from_json(str(filepath))
+    assert result is not None
+    assert len(result) == 2
+    assert result[0]['task'] == 'Task 1'
+
+
+def test_import_from_json_dict_without_tasks_or_task_list(tmp_path):
+    """Test importing from JSON dict without 'tasks' or 'task_list' key (covers line 36)."""
+    filepath = tmp_path / "tasks.json"
+    data = {
+        'items': [
+            {'id': 1, 'task': 'Task 1'}
+        ]
+    }
+    with open(filepath, 'w') as f:
+        json.dump(data, f)
+    
+    result = import_from_json(str(filepath))
+    assert result is None
+
+
+def test_import_from_markdown_with_medium_priority_header(tmp_path):
+    """Test importing from Markdown with medium priority header (covers lines 154, 155)."""
+    filepath = tmp_path / "tasks.md"
+    with open(filepath, 'w') as f:
+        f.write("# Todo List\n\n")
+        f.write("## Medium Priority\n\n")
+        f.write("- [ ] Medium task 1\n")
+        f.write("- [x] Medium task 2\n")
+    
+    result = import_from_markdown(str(filepath))
+    assert result is not None
+    assert len(result) == 2
+    assert all(t['priority'] == 'medium' for t in result)
+
+
+def test_import_from_markdown_with_delimiters(tmp_path):
+    """Test importing from Markdown with parentheses and brackets (covers lines 168, 169, 170, 171)."""
+    filepath = tmp_path / "tasks.md"
+    with open(filepath, 'w') as f:
+        f.write("# Todo List\n\n")
+        f.write("- [ ] Task with parentheses (due tomorrow)\n")
+        f.write("- [ ] Task with brackets [important]\n")
+        f.write("- [ ] Task with underscore (note) _extra info\n")
+    
+    result = import_from_markdown(str(filepath))
+    assert result is not None
+    assert len(result) == 3
+    assert result[0]['task'] == 'Task with parentheses'
+    assert result[1]['task'] == 'Task with brackets'
+    # The third task has both ( and _, but ( comes first in the delimiter list
+    assert result[2]['task'] == 'Task with underscore'
+
+
+def test_import_by_format_markdown(tmp_path):
+    """Test import by format with markdown format (covers line 219)."""
+    filepath = tmp_path / "tasks.md"
+    with open(filepath, 'w') as f:
+        f.write("- [ ] Task 1\n")
+        f.write("- [x] Task 2\n")
+    
+    result = import_by_format(str(filepath), format='md')
+    assert result is not None
+    assert len(result) == 2
+    
+    # Also test with 'markdown' format
+    result2 = import_by_format(str(filepath), format='markdown')
+    assert result2 is not None
+
+
+def test_import_by_format_text(tmp_path):
+    """Test import by format with text format (covers line 221)."""
+    filepath = tmp_path / "tasks.txt"
+    with open(filepath, 'w') as f:
+        f.write("[HIGH] Task 1\n")
+        f.write("Task 2\n")
+    
+    result = import_by_format(str(filepath), format='txt')
+    assert result is not None
+    assert len(result) == 2
+    
+    # Also test with 'text' format
+    result2 = import_by_format(str(filepath), format='text')
+    assert result2 is not None
+
+
+def test_validate_imported_tasks_non_bool_completed(tmp_path):
+    """Test validating tasks with non-boolean completed field (covers line 289)."""
+    tasks = [
+        {'id': 1, 'task': 'Task 1', 'priority': 'high', 'completed': 'yes', 'created_at': datetime.now().isoformat()},
+        {'id': 2, 'task': 'Task 2', 'priority': 'medium', 'completed': 1, 'created_at': datetime.now().isoformat()}
+    ]
+    valid, errors = validate_imported_tasks(tasks)
+    assert len(valid) == 2
+    assert valid[0]['completed'] is False
+    assert valid[1]['completed'] is False
+
+
+def test_validate_imported_tasks_missing_or_invalid_id():
+    """Test validating tasks with missing or non-integer id (covers line 293)."""
+    tasks = [
+        {'task': 'Task without id', 'priority': 'high', 'completed': False, 'created_at': datetime.now().isoformat()},
+        {'id': 'not_an_int', 'task': 'Task with string id', 'priority': 'medium', 'completed': True, 'created_at': datetime.now().isoformat()}
+    ]
+    valid, errors = validate_imported_tasks(tasks)
+    assert len(valid) == 2
+    assert valid[0]['id'] == 1
+    assert valid[1]['id'] == 2

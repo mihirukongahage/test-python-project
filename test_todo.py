@@ -119,3 +119,32 @@ def test_stats(runner, temp_todo_file):
     assert 'Total Tasks: 2' in result.output
     assert 'Completed: 1' in result.output
     assert 'Pending: 1' in result.output
+
+
+def test_complete_nonexistent_task(runner, temp_todo_file):
+    """Test completing a non-existent task."""
+    result = runner.invoke(cli, ['complete', '999'])
+    assert result.exit_code == 0
+    assert 'Task 999 not found' in result.output
+
+
+def test_delete_nonexistent_task(runner, temp_todo_file):
+    """Test deleting a non-existent task."""
+    result = runner.invoke(cli, ['delete', '999'])
+    assert result.exit_code == 0
+    assert 'Task 999 not found' in result.output
+
+
+def test_clear_no_completed_tasks(runner, temp_todo_file):
+    """Test clearing when there are no completed tasks."""
+    runner.invoke(cli, ['add', 'Task 1'])
+    result = runner.invoke(cli, ['clear'])
+    assert result.exit_code == 0
+    assert 'No completed tasks to clear' in result.output
+
+
+def test_stats_empty(runner, temp_todo_file):
+    """Test statistics when no tasks exist."""
+    result = runner.invoke(cli, ['stats'])
+    assert result.exit_code == 0
+    assert 'No tasks found' in result.output

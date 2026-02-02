@@ -7,6 +7,7 @@ import json
 import csv
 from pathlib import Path
 from datetime import datetime
+from unittest.mock import patch
 from task_export import (
     export_to_json, export_to_csv, export_to_markdown,
     export_to_html, export_to_text, export_by_format, create_backup
@@ -197,3 +198,41 @@ def test_create_backup_default_dir(sample_tasks):
     backup_path = create_backup(sample_tasks)
     if backup_path:  # May succeed or fail depending on permissions
         assert Path(backup_path).exists()
+
+
+def test_export_to_csv_invalid_path(sample_tasks):
+    """Test exporting to CSV with invalid path triggers IOError/OSError."""
+    result = export_to_csv(sample_tasks, "/invalid/nonexistent/path/tasks.csv")
+    assert result is False
+
+
+def test_export_to_markdown_invalid_path(sample_tasks):
+    """Test exporting to Markdown with invalid path triggers IOError/OSError."""
+    result = export_to_markdown(sample_tasks, "/invalid/nonexistent/path/tasks.md")
+    assert result is False
+
+
+def test_export_to_html_invalid_path(sample_tasks):
+    """Test exporting to HTML with invalid path triggers IOError/OSError."""
+    result = export_to_html(sample_tasks, "/invalid/nonexistent/path/tasks.html")
+    assert result is False
+
+
+def test_export_to_text_invalid_path(sample_tasks):
+    """Test exporting to text with invalid path triggers IOError/OSError."""
+    result = export_to_text(sample_tasks, "/invalid/nonexistent/path/tasks.txt")
+    assert result is False
+
+
+def test_create_backup_invalid_dir(sample_tasks):
+    """Test creating backup with invalid directory triggers IOError/OSError."""
+    # Use a path that cannot be created (e.g., under /proc which is read-only)
+    backup_path = create_backup(sample_tasks, backup_dir="/proc/invalid_backup_dir")
+    assert backup_path is None
+
+
+def test_create_backup_export_fails(sample_tasks, tmp_path):
+    """Test create_backup returns None when export_to_json fails."""
+    with patch('task_export.export_to_json', return_value=False):
+        backup_path = create_backup(sample_tasks, backup_dir=str(tmp_path))
+        assert backup_path is None

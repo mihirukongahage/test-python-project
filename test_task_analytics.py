@@ -201,3 +201,202 @@ def test_get_weekly_summary_empty():
     result = get_weekly_summary([])
     assert 'insights' in result
     assert len(result['insights']) > 0
+
+
+# Additional tests to improve coverage for lines: 67, 145, 146, 186, 187, 272, 273, 311, 313, 317, 328, 331
+
+def test_get_productivity_score_various_priorities():
+    """Test productivity score with various priority values."""
+    # Test with normal tasks
+    tasks = [{'id': 1, 'priority': 'medium', 'completed': False}]
+    result = get_productivity_score(tasks)
+    assert isinstance(result, float)
+    assert result == 0.0  # No completed tasks
+    
+    # Test with unknown priority (still gets default weight of 2)
+    tasks_unknown_priority = [{'id': 1, 'priority': 'unknown', 'completed': True}]
+    result = get_productivity_score(tasks_unknown_priority)
+    assert result == 100.0  # All tasks completed
+    
+    # Test with all priorities
+    tasks_all_priorities = [
+        {'id': 1, 'priority': 'low', 'completed': True},
+        {'id': 2, 'priority': 'medium', 'completed': True},
+        {'id': 3, 'priority': 'high', 'completed': False},
+    ]
+    result = get_productivity_score(tasks_all_priorities)
+    # low=1, medium=2, high=3 -> total_score=3, max_possible=6 -> 50%
+    assert result == 50.0
+
+
+def test_get_time_to_complete_with_valid_dates():
+    """Test time to complete with valid dates to cover line 145."""
+    now = datetime.now()
+    tasks = [
+        {
+            'id': 1,
+            'priority': 'high',
+            'completed': True,
+            'created_at': (now - timedelta(days=5)).isoformat()
+        },
+        {
+            'id': 2,
+            'priority': 'low',
+            'completed': True,
+            'created_at': (now - timedelta(days=3)).isoformat()
+        }
+    ]
+    result = get_time_to_complete(tasks)
+    assert result['overall'] > 0
+    assert result['high'] > 0
+    assert result['low'] > 0
+
+
+def test_get_time_to_complete_invalid_date():
+    """Test time to complete with invalid date to cover lines 145-146."""
+    tasks = [
+        {
+            'id': 1,
+            'priority': 'high',
+            'completed': True,
+            'created_at': 'invalid-date'
+        },
+        {
+            'id': 2,
+            'priority': 'medium',
+            'completed': True,
+            'created_at': None
+        }
+    ]
+    result = get_time_to_complete(tasks)
+    # Should handle invalid dates gracefully
+    assert result['overall'] == 0.0
+
+
+def test_identify_bottlenecks_invalid_date():
+    """Test identify bottlenecks with invalid date to cover lines 186-187."""
+    tasks = [
+        {
+            'id': 1,
+            'task': 'Task with invalid date',
+            'completed': False,
+            'created_at': 'not-a-valid-date'
+        },
+        {
+            'id': 2,
+            'task': 'Task with None date',
+            'completed': False,
+            'created_at': None
+        }
+    ]
+    result = identify_bottlenecks(tasks, threshold_days=7)
+    # Should handle invalid dates gracefully and return empty list
+    assert result == []
+
+
+def test_calculate_velocity_invalid_date():
+    """Test calculate velocity with invalid date to cover lines 272-273."""
+    tasks = [
+        {
+            'id': 1,
+            'task': 'Task with invalid date',
+            'completed': True,
+            'created_at': 'invalid'
+        },
+        {
+            'id': 2,
+            'task': 'Task with None date',
+            'completed': False,
+            'created_at': None
+        }
+    ]
+    result = calculate_velocity(tasks, period_days=7)
+    # Should handle invalid dates gracefully
+    assert result['tasks_completed'] == 0
+    assert result['tasks_created'] == 0
+
+
+def test_generate_insights_low_productivity():
+    """Test generate insights with low productivity to cover line 311."""
+    now = datetime.now()
+    # Create tasks where most are not completed (low productivity < 30%)
+    tasks = [
+        {'id': 1, 'priority': 'high', 'completed': False, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 2, 'priority': 'high', 'completed': False, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 3, 'priority': 'high', 'completed': False, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 4, 'priority': 'medium', 'completed': False, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 5, 'priority': 'low', 'completed': True, 'created_at': (now - timedelta(days=1)).isoformat()},
+    ]
+    result = generate_insights(tasks)
+    # Should have low productivity insight
+    assert any('Low productivity' in insight or 'productivity score' in insight.lower() for insight in result)
+
+
+def test_generate_insights_high_productivity():
+    """Test generate insights with high productivity to cover line 313."""
+    now = datetime.now()
+    # Create tasks where most are completed (high productivity > 80%)
+    tasks = [
+        {'id': 1, 'priority': 'high', 'completed': True, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 2, 'priority': 'high', 'completed': True, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 3, 'priority': 'medium', 'completed': True, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 4, 'priority': 'medium', 'completed': True, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 5, 'priority': 'low', 'completed': True, 'created_at': (now - timedelta(days=1)).isoformat()},
+    ]
+    result = generate_insights(tasks)
+    # Should have excellent productivity insight
+    assert any('Excellent' in insight or 'great work' in insight for insight in result)
+
+
+def test_generate_insights_many_high_priority_pending():
+    """Test generate insights with many high priority pending tasks to cover line 317."""
+    now = datetime.now()
+    # Create more than 3 high-priority pending tasks
+    tasks = [
+        {'id': 1, 'priority': 'high', 'completed': False, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 2, 'priority': 'high', 'completed': False, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 3, 'priority': 'high', 'completed': False, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 4, 'priority': 'high', 'completed': False, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 5, 'priority': 'medium', 'completed': True, 'created_at': (now - timedelta(days=1)).isoformat()},
+    ]
+    result = generate_insights(tasks)
+    # Should have high-priority pending insight
+    assert any('high-priority pending' in insight.lower() for insight in result)
+
+
+def test_generate_insights_large_backlog():
+    """Test generate insights with large backlog to cover line 328."""
+    now = datetime.now()
+    # Create tasks where pending > completed * 2
+    tasks = [
+        {'id': 1, 'priority': 'medium', 'completed': False, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 2, 'priority': 'medium', 'completed': False, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 3, 'priority': 'medium', 'completed': False, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 4, 'priority': 'medium', 'completed': False, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 5, 'priority': 'medium', 'completed': False, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 6, 'priority': 'low', 'completed': True, 'created_at': (now - timedelta(days=1)).isoformat()},
+    ]
+    result = generate_insights(tasks)
+    # Should have large backlog insight
+    assert any('backlog' in insight.lower() or 'pending' in insight.lower() for insight in result)
+
+
+def test_generate_insights_everything_good():
+    """Test generate insights when everything looks good to cover line 331."""
+    now = datetime.now()
+    # Create a balanced task list that doesn't trigger any negative insights
+    # - productivity between 30-80% (exactly 80% doesn't trigger > 80 condition)
+    # - high_pending <= 3
+    # - no bottlenecks (tasks within 14 days threshold)
+    # - net_velocity >= 0 (tasks outside 7-day velocity window)
+    # - pending <= completed * 2
+    tasks = [
+        # Completed tasks from 10 days ago (outside velocity window)
+        {'id': 1, 'priority': 'medium', 'completed': True, 'created_at': (now - timedelta(days=10)).isoformat()},
+        {'id': 2, 'priority': 'medium', 'completed': True, 'created_at': (now - timedelta(days=10)).isoformat()},
+        # Pending task from 10 days ago (outside velocity window, not a bottleneck since threshold is 14 days)
+        {'id': 3, 'priority': 'low', 'completed': False, 'created_at': (now - timedelta(days=10)).isoformat()},
+    ]
+    result = generate_insights(tasks)
+    # Should have "everything looks good" insight
+    assert any('looks good' in insight.lower() or 'keep maintaining' in insight.lower() for insight in result)

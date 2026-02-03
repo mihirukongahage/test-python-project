@@ -7,7 +7,7 @@ import json
 import csv
 from pathlib import Path
 from datetime import datetime
-from task_import import (
+from todo_app.task_import import (
     import_from_json, import_from_csv, import_from_text,
     import_from_markdown, import_by_format, merge_tasks,
     validate_imported_tasks, restore_from_backup

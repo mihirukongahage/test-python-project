@@ -15,15 +15,15 @@ from rich.table import Table
 from rich.panel import Panel
 
 # Import new modules
-from task_filters import (
+from todo_app.task_filters import (
     filter_by_priority, filter_by_status, search_tasks, 
     get_overdue_tasks, sort_tasks, combine_filters
 )
-from task_utils import (
+from todo_app.task_utils import (
     validate_task, calculate_statistics, format_date,
     create_task, get_next_task_id
 )
-from config_manager import ConfigManager
+from todo_app.config_manager import ConfigManager
 
 console = Console()
 

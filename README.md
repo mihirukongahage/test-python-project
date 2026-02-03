@@ -25,11 +25,27 @@ A comprehensive and beautiful terminal-based todo list manager built with Python
 
 ## Installation
 
+### From Source
+
 1. Clone or download this project
-2. Install dependencies:
+2. Install the package:
 
 ```bash
-pip install -r requirements.txt
+# Install for development (editable mode)
+pip install -e ".[dev]"
+
+# Or install just the package
+pip install -e .
+
+# Or using traditional requirements files
+pip install -r requirements.txt        # Production dependencies
+pip install -r requirements-dev.txt    # Development dependencies
+```
+
+### Using pip (when published)
+
+```bash
+pip install todo-app
 ```
 
 ## Usage
@@ -39,39 +55,39 @@ pip install -r requirements.txt
 #### Add a task
 
 ```bash
-python todo.py add "Buy groceries"
-python todo.py add "Finish project report" --priority high
-python todo.py add "Call mom" -p low
+todo add "Buy groceries"
+todo add "Finish project report" --priority high
+todo add "Call mom" -p low
 ```
 
 #### List all tasks
 
 ```bash
-python todo.py list
+todo list
 ```
 
 #### Mark a task as completed
 
 ```bash
-python todo.py complete 1
+todo complete 1
 ```
 
 #### Delete a task
 
 ```bash
-python todo.py delete 2
+todo delete 2
 ```
 
 #### Clear all completed tasks
 
 ```bash
-python todo.py clear
+todo clear
 ```
 
 #### View statistics
 
 ```bash
-python todo.py stats
+todo stats
 ```
 
 ### Advanced Commands
@@ -79,94 +95,119 @@ python todo.py stats
 #### Search for tasks
 
 ```bash
-python todo.py search "project"
+todo search "project"
 ```
 
 #### Filter tasks
 
 ```bash
 # Filter by priority
-python todo.py filter --priority high
+todo filter --priority high
 
 # Filter by status
-python todo.py filter --status pending
+todo filter --status pending
 
 # Filter by date range
-python todo.py filter --start-date 2024-01-01 --end-date 2024-12-31
+todo filter --start-date 2024-01-01 --end-date 2024-12-31
 ```
 
 #### View overdue tasks
 
 ```bash
-python todo.py overdue
+todo overdue
 ```
 
 #### View analytics
 
 ```bash
-python todo.py analytics
+todo analytics
 ```
 
 #### Import tasks
 
 ```bash
 # Import from JSON
-python todo.py import tasks.json --format json
+todo import tasks.json --format json
 
 # Import from CSV
-python todo.py import tasks.csv --format csv
+todo import tasks.csv --format csv
 
 # Auto-detect format
-python todo.py import tasks.json
+todo import tasks.json
 ```
 
 #### Export tasks
 
 ```bash
 # Export to JSON
-python todo.py export tasks.json --format json
+todo export tasks.json --format json
 
 # Export to CSV
-python todo.py export tasks.csv --format csv
+todo export tasks.csv --format csv
 
 # Export to HTML
-python todo.py export tasks.html --format html
+todo export tasks.html --format html
 ```
 
 #### Configuration
 
 ```bash
 # View current configuration
-python todo.py config show
+todo config show
 
 # Set configuration values
-python todo.py config set theme dark
-python todo.py config set default_priority medium
+todo config set theme dark
+todo config set default_priority medium
 
 # Reset to defaults
-python todo.py config reset
+todo config reset
 ```
 
 ### Get help
 
 ```bash
-python todo.py --help
-python todo.py add --help
-python todo.py filter --help
+todo --help
+todo add --help
+todo filter --help
 ```
 
 ## Project Structure
 
 ```
-├── todo.py                 # Main CLI application
-├── task_filters.py         # Task filtering and searching
-├── task_utils.py           # Task validation and utilities
-├── task_analytics.py       # Advanced analytics and insights
-├── task_export.py          # Export functionality
-├── task_import.py          # Import functionality
-├── config_manager.py       # Configuration management
-├── test_*.py              # Comprehensive test suite
-└── requirements.txt       # Python dependencies
+test-python-project/
+├── src/
+│   └── todo_app/              # Main package
+│       ├── __init__.py
+│       ├── cli.py             # Main CLI application
+│       ├── task_filters.py    # Task filtering and searching
+│       ├── task_utils.py      # Task validation and utilities
+│       ├── task_analytics.py  # Advanced analytics and insights
+│       ├── task_export.py     # Export functionality
+│       ├── task_import.py     # Import functionality
+│       └── config_manager.py  # Configuration management
+├── tests/                     # Test suite
+│   ├── __init__.py
+│   ├── test_config_manager.py
+│   ├── test_task_analytics.py
+│   ├── test_task_export.py
+│   ├── test_task_filters.py
+│   ├── test_task_import.py
+│   └── test_task_utils.py
+├── scripts/                   # Utility scripts
+│   ├── run_coverage.sh
+│   └── setup.sh
+├── docs/                      # Documentation
+│   └── COVERAGE.md
+├── pyproject.toml            # Modern Python project configuration
+├── setup.py                  # Backward compatibility
+├── requirements.txt          # Production dependencies
+├── requirements-dev.txt      # Development dependencies
+├── Makefile                  # Common development tasks
+├── LICENSE                   # MIT License
+├── README.md                 # This file
+├── .gitignore               # Git ignore patterns
+├── .coveragerc              # Coverage configuration
+└── .importlinter            # Import linting rules
 ```
 
 ## Dependencies
@@ -177,26 +218,50 @@ python todo.py filter --help
 - **coverage**: Code coverage measurement
 - **pytest-cov**: Coverage plugin for pytest
 
-## Testing & Coverage
+## Development
 
-### Run Tests
+### Quick Start with Makefile
+
+The project includes a Makefile for common development tasks:
 
 ```bash
-# Run all tests
+make help          # Show all available commands
+make install-dev   # Install with development dependencies
+make test          # Run tests
+make coverage      # Run tests with coverage report
+make lint          # Run linters
+make format        # Format code with black
+make clean         # Remove build artifacts
+make build         # Build distribution packages
+```
+
+### Testing & Coverage
+
+#### Run Tests
+
+```bash
+# Using Makefile (recommended)
+make test
+
+# Or directly with pytest
 pytest -v
 
 # Run specific test file
-pytest test_todo.py -v
+pytest tests/test_config_manager.py -v
 
 # Run with coverage
-pytest --cov=. --cov-report=html
+make coverage
+# Or: pytest --cov=todo_app --cov-report=html
 ```
 
-### Run Coverage Analysis
+#### Run Coverage Analysis
 
 ```bash
-# Quick method using the script
-./run_coverage.sh
+# Quick method using Makefile
+make coverage
+
+# Or using the script
+./scripts/run_coverage.sh
 
 # Or manually
 coverage run -m pytest
@@ -204,12 +269,31 @@ coverage report -m
 coverage html  # Generate HTML report
 ```
 
-### View Coverage Report
+#### View Coverage Report
 
 - **Terminal**: `coverage report -m`
 - **HTML**: Open `htmlcov/index.html` in your browser
 
 Current coverage: **87.88%** ✅ (151 tests passing)
+
+### Code Quality
+
+The project uses several tools to maintain code quality:
+
+- **black**: Code formatting
+- **ruff**: Fast Python linter
+- **mypy**: Static type checking
+- **import-linter**: Enforce import boundaries
+- **pytest**: Testing framework
+- **coverage**: Code coverage measurement
+
+Run all quality checks:
+
+```bash
+make format  # Format code
+make lint    # Run linters
+make test    # Run tests
+```
 
 ## Data Storage
 
@@ -220,13 +304,13 @@ Configuration is stored in `~/.todo_config.json`.
 ## Example Session
 
 ```bash
-$ python todo.py add "Write documentation" -p high
+$ todo add "Write documentation" -p high
 ✓ Added task: Write documentation (Priority: high)
 
-$ python todo.py add "Review pull requests" -p medium
+$ todo add "Review pull requests" -p medium
 ✓ Added task: Review pull requests (Priority: medium)
 
-$ python todo.py list
+$ todo list
 ┏━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━┓
 ┃ ID   ┃ Task                   ┃ Priority ┃ Status     ┃ Created            ┃
 ┡━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━┩
@@ -234,10 +318,10 @@ $ python todo.py list
 │ 2    │ Review pull requests   │ MEDIUM   │ ○ Pending  │ 2024-01-15 10:31   │
 └──────┴────────────────────────┴──────────┴────────────┴────────────────────┘
 
-$ python todo.py complete 1
+$ todo complete 1
 ✓ Marked task 1 as completed!
 
-$ python todo.py stats
+$ todo stats
 ╭────────── 📊 Todo Statistics ───────────╮
 │                                         │
 │     Total Tasks: 2                      │
@@ -247,7 +331,7 @@ $ python todo.py stats
 │                                         │
 ╰─────────────────────────────────────────╯
 
-$ python todo.py analytics
+$ todo analytics
 ╭──────────── 📈 Task Analytics ────────────╮
 │                                           │
 │ Productivity Score: 85.5/100              │

@@ -1,7 +1,7 @@
 [run]
-source = .
+source = src
 omit = 
-    test_*.py
+    */tests/*
     */__pycache__/*
     */site-packages/*
     setup.py

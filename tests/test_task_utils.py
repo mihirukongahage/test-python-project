@@ -4,7 +4,7 @@ Tests for task_utils module.
 
 import pytest
 from datetime import datetime, timedelta
-from task_utils import (
+from todo_app.task_utils import (
     validate_task, format_task_description, calculate_task_age,
     get_priority_score, calculate_statistics, reindex_tasks,
     create_task, format_date, is_overdue, get_next_task_id,

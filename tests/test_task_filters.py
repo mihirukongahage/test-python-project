@@ -4,7 +4,7 @@ Tests for task_filters module.
 
 import pytest
 from datetime import datetime, timedelta
-from task_filters import (
+from todo_app.task_filters import (
     filter_by_priority, filter_by_status, filter_by_date_range,
     search_tasks, get_overdue_tasks, sort_tasks, get_task_by_id,
     combine_filters

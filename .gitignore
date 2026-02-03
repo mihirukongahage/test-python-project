@@ -38,6 +38,8 @@ ENV/
 htmlcov/
 coverage.xml
 .coverage_report
+.tox/
+.nox/
 
 # OS
 .DS_Store
@@ -45,3 +47,21 @@ Thumbs.db
 
 # Application data
 .todo_list.json
+.todo_config.json
+
+# Linting and type checking
+.mypy_cache/
+.ruff_cache/
+.import_linter_cache/
+
+# SonarQube
+.scannerwork/
+
+# Documentation builds
+docs/_build/
+docs/.doctrees/
+
+# Coverage reports
+*.json
+!pyproject.toml
+!package.json

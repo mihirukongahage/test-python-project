@@ -4,7 +4,7 @@ Tests for task_analytics module.
 
 import pytest
 from datetime import datetime, timedelta
-from task_analytics import (
+from todo_app.task_analytics import (
     calculate_completion_trend, get_productivity_score, analyze_task_distribution,
     get_time_to_complete, identify_bottlenecks, calculate_urgency_score,
     get_priority_transition_matrix, calculate_velocity, generate_insights,

@@ -5,7 +5,7 @@ Tests for config_manager module.
 import json
 import pytest
 from pathlib import Path
-from config_manager import ConfigManager, DEFAULT_CONFIG
+from todo_app.config_manager import ConfigManager, DEFAULT_CONFIG
 
 
 @pytest.fixture

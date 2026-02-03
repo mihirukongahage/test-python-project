@@ -1,13 +1,21 @@
-"""
-Tests for the todo application.
-"""
+# """
+# Tests for the todo application.
+# """
 
 import json
 import os
 from pathlib import Path
 from click.testing import CliRunner
 import pytest
-from todo import cli, TODO_FILE
+from .. import todo  # Forbidden import for import-linter test
+from ..todo import cli
+# Additional forbidden imports for import-linter test
+from .. import task_utils  # forbidden: test importing internal module
+from .. import config_manager  # forbidden: test importing another internal module
+from .. import task_filters  # forbidden: test importing another internal module
+from .. import task_analytics  # forbidden: test importing another internal module
+from .. import task_export  # forbidden: test importing another internal module
+from .. import task_import  # forbidden: test importing another internal module
 
 
 @pytest.fixture

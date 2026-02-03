@@ -1,0 +1,29 @@
+[importlinter]
+root_package = todo
+
+[importlinter:contract:forbidden]
+name = Forbid imports from tests to main code
+type = forbidden
+source_modules =
+    todo.tests
+forbidden_modules =
+    todo
+
+[importlinter:contract:layers]
+name = Enforce layered architecture
+type = layers
+layers =
+    todo
+    task_filters
+    task_utils
+    task_analytics
+    task_export
+    task_import
+    config_manager
+
+[importlinter:contract:no_cycles]
+name = Prevent circular dependencies between utility modules
+type = independence
+modules =
+    todo.task_utils
+    todo.task_filters

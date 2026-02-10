@@ -38,15 +38,24 @@ test-python-project/
 │   └── setup.sh                # Setup script
 │
 ├── src/                         # Source code
-│   └── todo_app/               # Main package
-│       ├── __init__.py         # Package initialization
-│       ├── cli.py              # CLI interface (renamed from todo.py)
+│   ├── todo_app/               # Main application package
+│   │   ├── __init__.py         # Package initialization
+│   │   ├── cli.py              # CLI interface (renamed from todo.py)
+│   │   ├── task_analytics.py   # Analytics and insights
+│   │   └── task_filters.py     # Filtering and searching
+│   ├── export/                 # Export functionality package
+│   │   ├── __init__.py         # Export package initialization
+│   │   ├── task_export.py      # Export to various formats
+│   │   └── README.md           # Export documentation
+│   ├── imports/                # Import functionality package
+│   │   ├── __init__.py         # Import package initialization
+│   │   ├── task_import.py      # Import from various formats
+│   │   └── README.md           # Import documentation
+│   └── utils/                  # Utility modules package
+│       ├── __init__.py         # Utils package initialization
 │       ├── config_manager.py   # Configuration management
-│       ├── task_analytics.py   # Analytics and insights
-│       ├── task_export.py      # Export functionality
-│       ├── task_filters.py     # Filtering and searching
-│       ├── task_import.py      # Import functionality
-│       └── task_utils.py       # Utility functions
+│       ├── task_utils.py       # Task validation and utilities
+│       └── README.md           # Utils package documentation
 │
 ├── tests/                       # Test suite
 │   ├── __init__.py             # Test package initialization

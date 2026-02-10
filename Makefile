@@ -24,7 +24,7 @@ test:
 	pytest -v
 
 coverage:
-	pytest --cov=todo_app --cov-report=term-missing --cov-report=html
+	pytest --cov=src --cov-report=term-missing --cov-report=html
 	@echo "Coverage report generated in htmlcov/index.html"
 
 lint:

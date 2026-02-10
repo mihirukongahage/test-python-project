@@ -66,7 +66,7 @@ python_functions = ["test_*"]
 addopts = [
     "-v",
     "--strict-markers",
-    "--cov=todo_app",
+    "--cov=src",
     "--cov-report=term-missing",
     "--cov-report=html",
 ]

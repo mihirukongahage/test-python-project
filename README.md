@@ -176,15 +176,24 @@ todo filter --help
 ```
 test-python-project/
 ├── src/
-│   └── todo_app/              # Main package
+│   ├── todo_app/              # Main application package
+│   │   ├── __init__.py
+│   │   ├── cli.py             # Main CLI application
+│   │   ├── task_filters.py    # Task filtering and searching
+│   │   ├── task_analytics.py  # Advanced analytics and insights
+│   ├── export/                # Export functionality
+│   │   ├── __init__.py
+│   │   ├── task_export.py     # Export to various formats
+│   │   └── README.md
+│   ├── imports/               # Import functionality
+│   │   ├── __init__.py
+│   │   ├── task_import.py     # Import from various formats
+│   │   └── README.md
+│   └── utils/                 # Utility modules
 │       ├── __init__.py
-│       ├── cli.py             # Main CLI application
-│       ├── task_filters.py    # Task filtering and searching
 │       ├── task_utils.py      # Task validation and utilities
-│       ├── task_analytics.py  # Advanced analytics and insights
-│       ├── task_export.py     # Export functionality
-│       ├── task_import.py     # Import functionality
-│       └── config_manager.py  # Configuration management
+│       ├── config_manager.py  # Configuration management
+│       └── README.md
 ├── tests/                     # Test suite
 │   ├── __init__.py
 │   ├── test_config_manager.py

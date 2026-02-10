@@ -19,11 +19,11 @@ from todo_app.task_filters import (
     filter_by_priority, filter_by_status, search_tasks, 
     get_overdue_tasks, sort_tasks, combine_filters
 )
-from todo_app.task_utils import (
+from utils.task_utils import (
     validate_task, calculate_statistics, format_date,
-    create_task, get_next_task_id
+    create_task, get_next_task_id, calculate_task_age
 )
-from todo_app.config_manager import ConfigManager
+from utils.config_manager import ConfigManager
 
 console = Console()
 
@@ -282,7 +282,6 @@ def overdue(days):
     
     for todo in overdue_tasks:
         priority_color = config_manager.get_priority_color(todo['priority'])
-        from task_utils import calculate_task_age
         age = calculate_task_age(todo)
         
         table.add_row(

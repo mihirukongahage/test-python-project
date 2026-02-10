@@ -197,3 +197,43 @@ def test_create_backup_default_dir(sample_tasks):
     backup_path = create_backup(sample_tasks)
     if backup_path:  # May succeed or fail depending on permissions
         assert Path(backup_path).exists()
+
+
+def test_export_to_csv_invalid_path(sample_tasks):
+    """Test exporting to CSV with invalid path triggers IOError/OSError."""
+    result = export_to_csv(sample_tasks, "/invalid/nonexistent/path/tasks.csv")
+    assert result is False
+
+
+def test_export_to_markdown_invalid_path(sample_tasks):
+    """Test exporting to Markdown with invalid path triggers IOError/OSError."""
+    result = export_to_markdown(sample_tasks, "/invalid/nonexistent/path/tasks.md")
+    assert result is False
+
+
+def test_export_to_html_invalid_path(sample_tasks):
+    """Test exporting to HTML with invalid path triggers IOError/OSError."""
+    result = export_to_html(sample_tasks, "/invalid/nonexistent/path/tasks.html")
+    assert result is False
+
+
+def test_export_to_text_invalid_path(sample_tasks):
+    """Test exporting to text with invalid path triggers IOError/OSError."""
+    result = export_to_text(sample_tasks, "/invalid/nonexistent/path/tasks.txt")
+    assert result is False
+
+
+def test_create_backup_invalid_dir(sample_tasks):
+    """Test creating backup with invalid directory triggers IOError/OSError."""
+    result = create_backup(sample_tasks, backup_dir="/proc/invalid_backup_dir")
+    assert result is None
+
+
+def test_create_backup_export_fails(sample_tasks, tmp_path, monkeypatch):
+    """Test create_backup returns None when export_to_json fails."""
+    def mock_export_to_json(tasks, filepath, pretty=True):
+        return False
+    
+    monkeypatch.setattr('export.task_export.export_to_json', mock_export_to_json)
+    result = create_backup(sample_tasks, backup_dir=str(tmp_path))
+    assert result is None

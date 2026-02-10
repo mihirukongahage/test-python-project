@@ -12,6 +12,7 @@ from imports.task_import import (
     import_from_markdown, import_by_format, merge_tasks,
     validate_imported_tasks, restore_from_backup
 )
+import imports
 
 
 @pytest.fixture
@@ -253,3 +254,84 @@ def test_restore_from_backup(sample_json_file):
     result = restore_from_backup(str(sample_json_file))
     assert result is not None
     assert len(result) == 2
+
+
+class TestImportsPackageInit:
+    """Tests for imports package __init__.py exports."""
+
+    def test_imports_package_exports_all_functions(self):
+        """Test that all expected functions are exported from imports package."""
+        expected_exports = [
+            "import_from_json",
+            "import_from_csv",
+            "import_from_text",
+            "import_from_markdown",
+            "import_by_format",
+            "merge_tasks",
+            "validate_imported_tasks",
+            "restore_from_backup",
+        ]
+        for func_name in expected_exports:
+            assert hasattr(imports, func_name), f"{func_name} not exported from imports package"
+            assert callable(getattr(imports, func_name)), f"{func_name} is not callable"
+
+    def test_imports_package_all_attribute(self):
+        """Test that __all__ contains all expected exports."""
+        expected_exports = [
+            "import_from_json",
+            "import_from_csv",
+            "import_from_text",
+            "import_from_markdown",
+            "import_by_format",
+            "merge_tasks",
+            "validate_imported_tasks",
+            "restore_from_backup",
+        ]
+        assert hasattr(imports, "__all__")
+        for func_name in expected_exports:
+            assert func_name in imports.__all__, f"{func_name} not in __all__"
+
+    def test_imports_package_import_from_json(self, sample_json_file):
+        """Test import_from_json via package import."""
+        result = imports.import_from_json(str(sample_json_file))
+        assert result is not None
+        assert len(result) == 2
+
+    def test_imports_package_import_from_csv(self, sample_csv_file):
+        """Test import_from_csv via package import."""
+        result = imports.import_from_csv(str(sample_csv_file))
+        assert result is not None
+        assert len(result) == 2
+
+    def test_imports_package_import_from_text(self, sample_text_file):
+        """Test import_from_text via package import."""
+        result = imports.import_from_text(str(sample_text_file))
+        assert result is not None
+
+    def test_imports_package_import_from_markdown(self, sample_markdown_file):
+        """Test import_from_markdown via package import."""
+        result = imports.import_from_markdown(str(sample_markdown_file))
+        assert result is not None
+
+    def test_imports_package_import_by_format(self, sample_json_file):
+        """Test import_by_format via package import."""
+        result = imports.import_by_format(str(sample_json_file), format='json')
+        assert result is not None
+
+    def test_imports_package_merge_tasks(self):
+        """Test merge_tasks via package import."""
+        existing = [{'id': 1, 'task': 'Task 1'}]
+        imported = [{'id': 2, 'task': 'Task 2'}]
+        result = imports.merge_tasks(existing, imported, strategy='append')
+        assert len(result) == 2
+
+    def test_imports_package_validate_imported_tasks(self):
+        """Test validate_imported_tasks via package import."""
+        tasks = [{'id': 1, 'task': 'Task 1', 'priority': 'high'}]
+        valid, errors = imports.validate_imported_tasks(tasks)
+        assert len(valid) == 1
+
+    def test_imports_package_restore_from_backup(self, sample_json_file):
+        """Test restore_from_backup via package import."""
+        result = imports.restore_from_backup(str(sample_json_file))
+        assert result is not None

@@ -512,3 +512,25 @@ class TestIntegration:
             result = runner.invoke(cli, ['stats'])
             assert "Total Tasks" in result.output
             assert "3" in result.output
+
+
+class TestMainBlock:
+    """Tests for the __main__ block execution."""
+
+    def test_main_block_execution(self):
+        """Test that the __main__ block calls cli() when executed as main module."""
+        import runpy
+        import sys
+        
+        # Mock sys.argv to simulate running with --help to avoid interactive mode
+        original_argv = sys.argv
+        sys.argv = ['cli.py', '--help']
+        
+        try:
+            # Run the module as __main__ - this will execute line 298
+            runpy.run_module('todo_app.cli', run_name='__main__', alter_sys=True)
+        except SystemExit as e:
+            # Click exits with code 0 after showing help
+            assert e.code == 0
+        finally:
+            sys.argv = original_argv

@@ -201,3 +201,121 @@ def test_get_weekly_summary_empty():
     result = get_weekly_summary([])
     assert 'insights' in result
     assert len(result['insights']) > 0
+
+
+# Additional tests for coverage improvement
+
+def test_get_productivity_score_zero_weight_tasks():
+    """Test productivity score when tasks exist but edge case weights."""
+    # All tasks with valid priorities should still produce a valid score
+    tasks = [
+        {'id': 1, 'priority': 'unknown_priority', 'completed': True},  # Falls back to weight=2
+    ]
+    score = get_productivity_score(tasks)
+    assert score == 100.0  # Completed task with default weight
+
+
+def test_get_time_to_complete_invalid_created_at_completed():
+    """Test time to complete with invalid created_at for completed tasks (covers lines 145-146)."""
+    tasks = [
+        {'id': 1, 'completed': True, 'created_at': 'invalid-date-format', 'priority': 'high'},
+        {'id': 2, 'completed': True, 'created_at': None, 'priority': 'medium'},
+        {'id': 3, 'completed': True, 'priority': 'low'},  # Missing created_at
+    ]
+    result = get_time_to_complete(tasks)
+    # All tasks should be skipped due to invalid dates
+    assert result['overall'] == 0.0
+    assert result['high'] == 0.0
+
+
+def test_identify_bottlenecks_invalid_created_at():
+    """Test identify_bottlenecks with invalid created_at (covers lines 186-187)."""
+    tasks = [
+        {'id': 1, 'completed': False, 'created_at': 'not-a-date', 'priority': 'high'},
+        {'id': 2, 'completed': False, 'created_at': None, 'priority': 'medium'},
+        {'id': 3, 'completed': False, 'priority': 'low'},  # Missing created_at
+    ]
+    result = identify_bottlenecks(tasks, threshold_days=1)
+    # All tasks should be skipped due to invalid dates
+    assert result == []
+
+
+def test_calculate_velocity_invalid_created_at():
+    """Test calculate_velocity with invalid created_at (covers lines 272-273)."""
+    tasks = [
+        {'id': 1, 'completed': True, 'created_at': 'bad-date'},
+        {'id': 2, 'completed': False, 'created_at': None},
+        {'id': 3, 'completed': True},  # Missing created_at
+    ]
+    result = calculate_velocity(tasks, period_days=7)
+    # All tasks should be skipped due to invalid dates
+    assert result['tasks_completed'] == 0
+    assert result['tasks_created'] == 0
+
+
+def test_generate_insights_low_productivity():
+    """Test generate_insights with low productivity score (covers line 311)."""
+    now = datetime.now()
+    # Create tasks where most are high priority and incomplete to get low productivity
+    tasks = [
+        {'id': 1, 'priority': 'high', 'completed': False, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 2, 'priority': 'high', 'completed': False, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 3, 'priority': 'high', 'completed': False, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 4, 'priority': 'high', 'completed': False, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 5, 'priority': 'high', 'completed': False, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 6, 'priority': 'low', 'completed': True, 'created_at': (now - timedelta(days=1)).isoformat()},
+    ]
+    result = generate_insights(tasks)
+    # Should have low productivity insight
+    assert any("Low productivity" in insight for insight in result)
+    # Should also have high priority pending insight (line 317)
+    assert any("high-priority pending" in insight for insight in result)
+
+
+def test_generate_insights_high_productivity():
+    """Test generate_insights with high productivity score (covers line 313)."""
+    now = datetime.now()
+    # Create tasks where most are completed to get high productivity
+    tasks = [
+        {'id': 1, 'priority': 'high', 'completed': True, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 2, 'priority': 'high', 'completed': True, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 3, 'priority': 'medium', 'completed': True, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 4, 'priority': 'low', 'completed': True, 'created_at': (now - timedelta(days=1)).isoformat()},
+    ]
+    result = generate_insights(tasks)
+    # Should have high productivity insight
+    assert any("Excellent productivity" in insight for insight in result)
+
+
+def test_generate_insights_large_backlog():
+    """Test generate_insights with large backlog (covers line 328)."""
+    now = datetime.now()
+    # Create many pending tasks vs few completed to trigger backlog insight
+    tasks = [
+        {'id': 1, 'priority': 'medium', 'completed': True, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 2, 'priority': 'medium', 'completed': False, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 3, 'priority': 'medium', 'completed': False, 'created_at': (now - timedelta(days=1)).isoformat()},
+        {'id': 4, 'priority': 'medium', 'completed': False, 'created_at': (now - timedelta(days=1)).isoformat()},
+    ]
+    result = generate_insights(tasks)
+    # Should have backlog insight (pending > completed * 2 means 3 > 2, which is true)
+    assert any("backlog" in insight.lower() for insight in result)
+
+
+def test_generate_insights_everything_good():
+    """Test generate_insights when everything looks good (covers line 331)."""
+    now = datetime.now()
+    # Create balanced tasks with moderate productivity that don't trigger any warnings
+    # Tasks must be older than 7 days so they don't count in velocity calculations
+    # Productivity should be between 30 and 80, no high pending > 3, no bottlenecks, no large backlog
+    tasks = [
+        {'id': 1, 'priority': 'medium', 'completed': True, 'created_at': (now - timedelta(days=10)).isoformat()},
+        {'id': 2, 'priority': 'medium', 'completed': True, 'created_at': (now - timedelta(days=10)).isoformat()},
+        {'id': 3, 'priority': 'medium', 'completed': False, 'created_at': (now - timedelta(days=10)).isoformat()},
+    ]
+    result = generate_insights(tasks)
+    # With 2 completed and 1 pending medium tasks, productivity = (4/6)*100 = 66.67%
+    # No high pending, no bottlenecks (14 day threshold), balanced backlog (1 pending vs 2 completed)
+    # No velocity issue since tasks are older than 7 days
+    # Should have "Everything looks good" insight
+    assert any("Everything looks good" in insight for insight in result)
